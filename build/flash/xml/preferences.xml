@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <prefs>
     <pref key="MOTION_THRESHOLD" value="5000" />
+    <pref key="PRINTER_COOLDOWN" value="20" />
+    <pref key="PRINTER_MODE" value="Preview" />
+    <pref key="PRINTER_RANDOMNESS" value="0.25" />
 </prefs>

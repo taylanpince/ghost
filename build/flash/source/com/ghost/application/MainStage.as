@@ -23,6 +23,7 @@ package com.ghost.application {
     import flash.system.fscommand;
     import flash.printing.PrintJob;
     import flash.printing.PrintJobOptions;
+    import flash.geom.Rectangle;
     
     import com.ghost.application.Preferences;
     
@@ -35,8 +36,11 @@ package com.ghost.application {
         private var currentSnapShot:BitmapData;
         private var outputSnapShot:BitmapData;
         private var previousSnapShot:BitmapData;
+        private var printerActive:Boolean;
         
         public function MainStage() {
+            printerActive = true;
+            
             var camera:Camera = Camera.getCamera();
             
             if (camera != null) {
@@ -47,7 +51,7 @@ package com.ghost.application {
                 Preferences.getInstance();
                 addEventListener(Event.ENTER_FRAME, init);
                 
-                printButton.addEventListener(MouseEvent.MOUSE_UP, printFrame);
+                printButton.addEventListener(MouseEvent.MOUSE_UP, printFrameCall);
             } else {
                 trace("Camera could not be found.");
             }
@@ -65,7 +69,7 @@ package com.ghost.application {
         	imageMatrix = new Matrix();
         	
         	imageMatrix.scale(videoOutput.scaleX, videoOutput.scaleY);
-
+            
         	currentSnapShot = new BitmapData(videoOutput.width, videoOutput.height);
         	outputSnapShot = new BitmapData(videoOutput.width, videoOutput.height);
         	
@@ -74,12 +78,12 @@ package com.ghost.application {
         	
         	detectorOutput = new Bitmap(outputSnapShot);
         	addChild(detectorOutput);
-
+            
         	detectorOutput.x = videoOutput.width;
         	detectorOutput.y = videoOutput.y;
         	
         	thresholdOutput.text = Preferences.getInstance().getPreference("MOTION_THRESHOLD");
-
+            
         	var updateTimer:Timer = new Timer(100, 0);
         	updateTimer.addEventListener(TimerEvent.TIMER, updateDetector);
         	updateTimer.start();
@@ -87,29 +91,56 @@ package com.ghost.application {
 
         private function updateDetector( event:TimerEvent ):void {
         	currentSnapShot.draw(videoOutput, imageMatrix);
-
+            
         	var currentSnapShotClone = currentSnapShot.clone();
-
+            
         	currentSnapShotClone.draw(previousSnapShot, imageMatrix, null, "difference");
-        	motionOutput.text = currentSnapShotClone.threshold(currentSnapShotClone, currentSnapShotClone.rect, currentSnapShotClone.rect.topLeft, ">", 0xFF111111, 0xFF00FF00, 0x00FFFFFF, false);
-
+        	var currentMotion:Number = currentSnapShotClone.threshold(currentSnapShotClone, currentSnapShotClone.rect, currentSnapShotClone.rect.topLeft, ">", 0xFF111111, 0xFF00FF00, 0x00FFFFFF, false);
+            
         	previousSnapShot = currentSnapShot.clone();
-
+            
     		outputSnapShot.draw(currentSnapShotClone, imageMatrix);
+    		
+    		motionOutput.text = String(currentMotion);
+    		
+    		if (currentMotion > parseInt(Preferences.getInstance().getPreference("MOTION_THRESHOLD"))) {
+	            if (printerActive == true && (Math.random() * 100) < parseFloat(Preferences.getInstance().getPreference("PRINTER_RANDOMNESS"))) {
+	                printFrame();
+	            }
+    		}
         }
         
-        private function printFrame( event:MouseEvent ):void {
-            fscommand("exec", "Print.app");
+        private function printFrameCall( event:MouseEvent ):void {
+            printFrame();
+        }
+        
+        private function printFrame():void {
+            printerActive = false;
+            
+            fscommand("exec", Preferences.getInstance().getPreference("PRINTER_MODE") + ".app");
             
             var printTimer:Timer = new Timer(1000, 1);
         	printTimer.addEventListener(TimerEvent.TIMER, printStart);
         	printTimer.start();
+        	
+        	var printCooldownTimer:Timer = new Timer(parseInt(Preferences.getInstance().getPreference("PRINTER_COOLDOWN")) * 1000, 1);
+        	printCooldownTimer.addEventListener(TimerEvent.TIMER, printCooldown);
+        	printCooldownTimer.start();
+        }
+        
+        private function printCooldown( event:TimerEvent ):void {
+            printerActive = true;
         }
         
         private function printStart( event:TimerEvent ):void {
             var printProcess:PrintJob = new PrintJob();
+            var printProcessOptions:PrintJobOptions = new PrintJobOptions();
+            var printProcessArea:Rectangle = new Rectangle(0, 0, videoOutput.width, videoOutput.height);
+            
+            printProcessOptions.printAsBitmap = true;
             
             printProcess.start();
+            printProcess.addPage(this, printProcessArea, printProcessOptions);
             printProcess.send();
         }
     
