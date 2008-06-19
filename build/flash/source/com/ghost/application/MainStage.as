@@ -117,7 +117,7 @@ package com.ghost.application {
         private function printFrame():void {
             printerActive = false;
             
-            fscommand("exec", Preferences.getInstance().getPreference("PRINTER_MODE") + ".app");
+            fscommand("exec", Preferences.getInstance().getPreference("PRINTER_MODE") + Preferences.getInstance().getPreference("PRINTER_PLATFORM") + ".app");
             
             var printTimer:Timer = new Timer(1000, 1);
         	printTimer.addEventListener(TimerEvent.TIMER, printStart);
