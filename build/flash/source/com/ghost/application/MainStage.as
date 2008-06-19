@@ -9,6 +9,7 @@
 package com.ghost.application {
 
     import flash.display.Sprite;
+    import flash.display.MovieClip;
     import flash.display.SimpleButton;
     import flash.display.Bitmap;
     import flash.display.BitmapData
@@ -23,6 +24,7 @@ package com.ghost.application {
     import flash.system.fscommand;
     import flash.printing.PrintJob;
     import flash.printing.PrintJobOptions;
+    import flash.printing.PrintJobOrientation;
     import flash.geom.Rectangle;
     
     import com.ghost.application.Preferences;
@@ -52,6 +54,8 @@ package com.ghost.application {
                 addEventListener(Event.ENTER_FRAME, init);
                 
                 printButton.addEventListener(MouseEvent.MOUSE_UP, printFrameCall);
+                
+                shieldArea.visible = false;
             } else {
                 trace("Camera could not be found.");
             }
@@ -135,13 +139,26 @@ package com.ghost.application {
         private function printStart( event:TimerEvent ):void {
             var printProcess:PrintJob = new PrintJob();
             var printProcessOptions:PrintJobOptions = new PrintJobOptions();
-            var printProcessArea:Rectangle = new Rectangle(0, 0, videoOutput.width, videoOutput.height);
+            
+            videoOutput.x = parseInt(Preferences.getInstance().getPreference("PRINTER_POSITION_X"));
+            videoOutput.y = parseInt(Preferences.getInstance().getPreference("PRINTER_POSITION_Y"));
+            
+            detectorOutput.visible = false;
+            shieldArea.visible = true;
+            
+            var printProcessArea:Rectangle = new Rectangle(0, 0, parseInt(Preferences.getInstance().getPreference("PRINTER_POSITION_X")) + videoOutput.width, parseInt(Preferences.getInstance().getPreference("PRINTER_POSITION_Y")) + videoOutput.height);
             
             printProcessOptions.printAsBitmap = true;
             
             printProcess.start();
             printProcess.addPage(this, printProcessArea, printProcessOptions);
             printProcess.send();
+            
+            videoOutput.x = 0;
+            videoOutput.y = 0;
+            
+            detectorOutput.visible = true;
+            shieldArea.visible = false;
         }
     
     }
