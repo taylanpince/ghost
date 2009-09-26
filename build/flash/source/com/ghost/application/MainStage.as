@@ -43,28 +43,31 @@ package com.ghost.application {
         public function MainStage() {
             printerActive = true;
             
-            var camera:Camera = Camera.getCamera();
+            Preferences.getInstance();
+            addEventListener(Event.ENTER_FRAME, init);
             
-            if (camera != null) {
-                videoOutput = new Video(camera.width * 2, camera.height * 2);
-                videoOutput.attachCamera(camera);
-                addChild(videoOutput);
-                
-                Preferences.getInstance();
-                addEventListener(Event.ENTER_FRAME, init);
-                
-                printButton.addEventListener(MouseEvent.MOUSE_UP, printFrameCall);
-                
-                shieldArea.visible = false;
-            } else {
-                trace("Camera could not be found.");
-            }
+            printButton.addEventListener(MouseEvent.MOUSE_UP, printFrameCall);
+            
+            shieldArea.visible = false;
         }
         
         private function init( event:Event ):void {
             if (Preferences.getInstance().isLoaded()) {
                 removeEventListener(Event.ENTER_FRAME, init);
-                initDetector();
+
+                var camera:Camera = Camera.getCamera();
+
+                if (camera != null) {
+                    camera.setMode(parseInt(Preferences.getInstance().getPreference("PRINTER_WIDTH")), parseInt(Preferences.getInstance().getPreference("PRINTER_HEIGHT")), 15, true);
+
+                    videoOutput = new Video(camera.width, camera.height);
+                    videoOutput.attachCamera(camera);
+                    addChild(videoOutput);
+
+                    initDetector();
+                } else {
+                    trace("Camera could not be found.");
+                }
             }
         }
         

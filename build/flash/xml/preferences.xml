@@ -3,8 +3,10 @@
     <pref key="MOTION_THRESHOLD" value="5000" />
     <pref key="PRINTER_COOLDOWN" value="20" />
     <pref key="PRINTER_MODE" value="Preview" />
-    <pref key="PRINTER_PLATFORM" value="Tiger" />
+    <pref key="PRINTER_PLATFORM" value="SnowLeopard" />
     <pref key="PRINTER_RANDOMNESS" value="0.25" />
-    <pref key="PRINTER_POSITION_X" value="170" />
-    <pref key="PRINTER_POSITION_Y" value="140" />
+    <pref key="PRINTER_POSITION_X" value="0" />
+    <pref key="PRINTER_POSITION_Y" value="0" />
+    <pref key="PRINTER_WIDTH" value="320" />
+    <pref key="PRINTER_HEIGHT" value="240" />
 </prefs>
